@@ -124,9 +124,19 @@ stop()
 
 case $1 in
 	start)
+		isRunning="`ps -u $USER | grep "sjobq.d$" | awk '{a[NR]=$1}END{ if(a[2]==(a[1]+1)) print 0; else print 1}'`"
+		if [ $isRunning -eq "1" ]
+		then
+			# It's already running.
+			echo "### Error ### The daemon sjobq.d is already running"
+			echo "              stop it using \"sjobq.d stop\""
+			exit 1
+		fi
+		
 		if [ ! -d "$DATA_DIR" ]
 		then
-			mkdir -p $DATA_DIR
+			mkdir -p "$DATA_DIR"
+			chmod 700 "$DATA_DIR"
 		fi
 		
 		nohup $0 __start > $DATA_DIR/log 2> $DATA_DIR/err &
